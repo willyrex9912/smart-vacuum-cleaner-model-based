@@ -10,7 +10,8 @@ class MessMakerContext(Context):
         self.quadrants = quadrants
 
     def run(self):
-        quadrant_name = input("Type quadrant name to be dirty:\n")
+        # quadrant_name = input("Type quadrant name to be dirty:\n")
+        quadrant_name = input("\n")
         quadrant = self.find_quadrant(quadrant_name)
         if quadrant is not None:
             quadrant.is_cleaned = False
