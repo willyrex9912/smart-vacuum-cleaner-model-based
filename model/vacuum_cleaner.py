@@ -33,6 +33,8 @@ class VacuumCleaner:
 
         elif self.state == StateEnum.QUADRANT_CHECKED and self.action == ActionEnum.QUADRANT_CHECK and perception == PerceptionEnum.DIRTY_QUADRANT:
             return StateEnum.QUADRANT_CLEANED_CHANGED
+        elif self.state == StateEnum.QUADRANT_CHECKED and self.action == ActionEnum.QUADRANT_CHECK and perception == PerceptionEnum.CLEANED_QUADRANT:
+            return StateEnum.QUADRANT_CLEANED_CHANGED
         elif self.state == StateEnum.QUADRANT_CLEANED_CHANGED and self.action == ActionEnum.QUADRANT_CLEANING_CHANGE and perception == PerceptionEnum.DIRTY_QUADRANT:
             return StateEnum.QUADRANT_CHECKED_FOR_PAUSE
         elif self.state == StateEnum.QUADRANT_CLEANED_CHANGED and self.action == ActionEnum.QUADRANT_CLEANING_CHANGE and perception == PerceptionEnum.CLEANED_QUADRANT:
@@ -115,4 +117,5 @@ class VacuumCleaner:
         self.pause()
 
     def pause(self):
+        logging.info("Pausing...")
         time.sleep(10)
