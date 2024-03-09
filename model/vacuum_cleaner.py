@@ -19,6 +19,10 @@ class VacuumCleaner:
             Rule(StateEnum.QUADRANT_CHECKED, ActionEnum.QUADRANT_CHECK),
             Rule(StateEnum.QUADRANT_CLEANED, ActionEnum.QUADRANT_CLEANING),
             Rule(StateEnum.QUADRANT_CHANGED, ActionEnum.QUADRANT_CHANGE),
+            Rule(StateEnum.QUADRANT_CLEANED_CHANGED, ActionEnum.QUADRANT_CLEANING_CHANGE),
+            Rule(StateEnum.QUADRANT_CHECKED_FOR_PAUSE, ActionEnum.QUADRANT_CHECK_FOR_PAUSE),
+            Rule(StateEnum.QUADRANT_CLEANED_PAUSED, ActionEnum.QUADRANT_CLEANING_PAUSE),
+            Rule(StateEnum.QUADRANT_PAUSED, ActionEnum.QUADRANT_PAUSE),
         ]
         self.state = None
         self.action = None
@@ -26,6 +30,18 @@ class VacuumCleaner:
     def update_state(self, perception: PerceptionEnum) -> StateEnum:
         if self.state is None and self.action is None and perception is None:
             return StateEnum.QUADRANT_CHECKED
+
+        elif self.state == StateEnum.QUADRANT_CHECKED and self.action == ActionEnum.QUADRANT_CHECK and perception == PerceptionEnum.DIRTY_QUADRANT:
+            return StateEnum.QUADRANT_CLEANED_CHANGED
+        elif self.state == StateEnum.QUADRANT_CLEANED_CHANGED and self.action == ActionEnum.QUADRANT_CLEANING_CHANGE and perception == PerceptionEnum.DIRTY_QUADRANT:
+            return StateEnum.QUADRANT_CHECKED_FOR_PAUSE
+        elif self.state == StateEnum.QUADRANT_CLEANED_CHANGED and self.action == ActionEnum.QUADRANT_CLEANING_CHANGE and perception == PerceptionEnum.CLEANED_QUADRANT:
+            return StateEnum.QUADRANT_CHECKED_FOR_PAUSE
+        elif self.state == StateEnum.QUADRANT_CHECKED_FOR_PAUSE and self.action == ActionEnum.QUADRANT_CHECK_FOR_PAUSE and perception == PerceptionEnum.DIRTY_QUADRANT:
+            return StateEnum.QUADRANT_CLEANED_PAUSED
+        elif self.state == StateEnum.QUADRANT_CHECKED_FOR_PAUSE and self.action == ActionEnum.QUADRANT_CHECK_FOR_PAUSE and perception == PerceptionEnum.CLEANED_QUADRANT:
+            return StateEnum.QUADRANT_PAUSED
+
         elif self.state == StateEnum.QUADRANT_CHECKED and self.action == ActionEnum.QUADRANT_CHECK and perception == PerceptionEnum.DIRTY_QUADRANT:
             return StateEnum.QUADRANT_CLEANED
         elif self.state == StateEnum.QUADRANT_CHECKED and self.action == ActionEnum.QUADRANT_CHECK and perception == PerceptionEnum.CLEANED_QUADRANT:
@@ -52,12 +68,18 @@ class VacuumCleaner:
         rule = self.match_rule(self.state)
         self.action = rule.action
 
-        if self.action == ActionEnum.QUADRANT_CHECK:
+        if self.action == ActionEnum.QUADRANT_CHECK or self.action == ActionEnum.QUADRANT_CHECK_FOR_PAUSE:
             self.is_necessary_to_clean(quadrants)
         elif self.action == ActionEnum.QUADRANT_CLEANING:
             self.clean()
         elif self.action == ActionEnum.QUADRANT_CHANGE:
             self.move(quadrants)
+        elif self.action == ActionEnum.QUADRANT_CLEANING_CHANGE:
+            self.clean_and_change(quadrants)
+        elif self.action == ActionEnum.QUADRANT_CLEANING_PAUSE:
+            self.clean_and_pause()
+        elif self.action == ActionEnum.QUADRANT_PAUSE:
+            self.pause()
 
     def is_necessary_to_clean(self, quadrants: List[Quadrant]):
         logging.info("Testing if its necessary to clean the quadrant")
@@ -83,3 +105,14 @@ class VacuumCleaner:
 
     def move_right(self, quadrants: List[Quadrant]):
         self.current_quadrant = quadrants[1]
+
+    def clean_and_change(self, quadrants: List[Quadrant]):
+        self.clean()
+        self.move(quadrants)
+
+    def clean_and_pause(self):
+        self.clean()
+        self.pause()
+
+    def pause(self):
+        time.sleep(10)
